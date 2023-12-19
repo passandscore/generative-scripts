@@ -17,149 +17,164 @@
 
   <body>
     <script>
-        // Get the tokenId from the query parameters
-        const urlParams = new URLSearchParams(window.location.search);
-      const tokenId = urlParams.get('tokenId');
+                              // Get the tokenId from the query parameters
+                              const urlParams = new URLSearchParams(window.location.search);
+                              const tokenId = urlParams.get('tokenId');
 
-      let images = []; // Array to store image objects
-      let logo;
-      let font, fontReady = false;
+                              let images = []; // Array to store image objects
+                              let logo;
+                              let font, fontReady = false;
 
-      // Artwork configuration
-      const artworkConfig = {
-        canvasWidth: 900,
-        canvasHeight: 600,
-        cardWidth: 900,
-        cardHeight: 600,
-        cornerRadius: 30,
-        shadowSize: 10,
-        artOffset: 40,
-        padding: 20,
-        blurAmount: 1,
-        posterizeLevel: 5,
-      };
+                              // Artwork configuration
+                              let artworkConfig = {
+                                canvasWidth: 500,
+                                canvasHeight: 350,
+                                cardWidth: 500,
+                                cardHeight: 350,
+                                cornerRadius: 30,
+                                shadowSize: 20,
+                                artOffset: 40,
+                                padding: 20,
+                                blurAmount: 2,
+                                posterizeLevel: 3,
+                              };
 
-      let cardXOffset, cardYOffset;
+                              let cardXOffset, cardYOffset;
+                              let currentImageIndex = 0;
+                              let lastImageChangeTime = 0;
+                              const imageChangeInterval = 2000; // in milliseconds (0.5 seconds)
 
-      function fontRead() {
-        fontReady = true;
+                              function fontRead() {
+                                fontReady = true;
+                              }
+
+                              function preload() {
+                                // Load your images into the array
+                                for (let i = 1; i <= 10; i++) {
+                                  images.push(loadImage(`images/image${i}.jpeg`));
+                                }
+
+                                logo = loadImage('./artImage.png');
+                                font = loadFont("./Poppins-Regular.ttf", fontRead);
+                              }
+
+                              function setup() {
+                                createCanvas(windowWidth, windowHeight);
+                                noStroke();
+                                updateCardPosition();
+                              }
+
+                              function draw() {
+                      background(0); // Set the background to black
+
+                      // Draw a thin black border around the entire canvas
+                      fill(0);
+                      noStroke();
+                      rect(0, 0, width, height);
+
+                      // Draw a rounded shadow with light from the top-left corner
+                      for (let i = 0; i < artworkConfig.shadowSize; i++) {
+                          let alpha = map(i, 4, artworkConfig.shadowSize, 0, 20); // Adjust alpha for a smooth transition
+                          fill(0, alpha);
+                          rect(cardXOffset + i, cardYOffset + i, artworkConfig.cardWidth, artworkConfig.cardHeight, artworkConfig.cornerRadius);
+                      }
+
+                      // Draw a rounded rectangle as the card background
+                      fill(255); // Invert
+                      rect(cardXOffset, cardYOffset, artworkConfig.cardWidth, artworkConfig.cardHeight, artworkConfig.cornerRadius);
+
+                      // Change images at a specific interval
+                      if (millis() - lastImageChangeTime > imageChangeInterval) {
+                          currentImageIndex = (currentImageIndex + 1) % images.length;
+                          lastImageChangeTime = millis();
+                      }
+
+                      // Draw the current image
+                      let img = images[currentImageIndex];
+                      img.resize(artworkConfig.cardWidth - 2 * artworkConfig.padding, artworkConfig.cardHeight - 2 * artworkConfig.padding);
+                      img.filter(BLUR, artworkConfig.blurAmount);
+                      img.filter(POSTERIZE, artworkConfig.posterizeLevel);
+                      drawCard(img, width / 2, height / 2, artworkConfig.cardWidth, artworkConfig.cardHeight);
+
+                      placeArtImageLogo(cardXOffset, cardYOffset, artworkConfig.cardWidth, artworkConfig.cardHeight);
+                      placeInvertedTriangle(cardXOffset, cardYOffset, artworkConfig.cardWidth, artworkConfig.cardHeight);
+                  }
+
+                              function drawCard(img, x, y, width, height) {
+                                // Draw a card with a shadow
+                                push();
+                                translate(x - width / 2, y - height / 2); // Center the card on the canvas
+
+                                // Draw image inside the card with padding
+                                image(img, artworkConfig.padding, artworkConfig.padding, width - 2 * artworkConfig.padding, height - 2 * artworkConfig.padding);
+
+                                pop();
+                              }
+
+                              function placeArtImageLogo(x, y, width, height) {
+                                // Place "artImage" logo on top of the card inside a white circle
+                                push();
+                                translate(x -8, y -8); // Top-left corner of the card
+
+                                // Draw a white circle slightly larger than the logo
+                                fill(255);
+                                noStroke();
+                                ellipse(60, 60, 105, 105); // Adjust circle position and size as needed
+
+                                // Use the globally loaded logo variable
+                                logo.resize(100, 100);
+                                image(logo, 10, 10); // Adjust logo position as needed
+
+                                pop();
+                              }
+
+
+                              function placeInvertedTriangle(x, y, width, height) {
+          // Place an inverted white triangle in the bottom right of the card
+          push();
+          translate(x + width, y + height); // Bottom right corner of the card
+
+          // fill(255); // White
+          // noStroke();
+          // triangle(-10, -10, -250, 0, 0, -250);
+
+          if (fontReady) {
+              // Draw the text with a white stroke
+              fill(255);
+              stroke(255);
+              strokeWeight(6); // Adjust the stroke weight as needed
+
+              textSize(70);
+              let textTop = tokenId;
+              textFont(font);
+
+              textAlign(RIGHT, BOTTOM); // Align to the right and expand towards the left
+              let xOffset = -30; // Adjust this value as needed
+              let yOffset = 5;
+
+              text(textTop, xOffset, yOffset); // Adjust text position as needed
+
+              // Draw the text with a black fill
+              noStroke();
+              fill(0);
+              text(textTop, xOffset, yOffset); // Adjust text position as needed
+          }
+
+          pop();
       }
 
-      function preload() {
-        // Load your images into the array
-        for (let i = 1; i <= 10; i++) {
-          images.push(loadImage(`images/image${i}.jpeg`));
-        }
 
-        logo = loadImage('./artImage.png');
-        font = loadFont("./Poppins-Regular.ttf", fontRead);
-      }
 
-      function setup() {
-        createCanvas(1080, 1080);
-        background(200);
-        noStroke();
+                              function updateCardPosition() {
+                                // Calculate the position to center the card within the canvas
+                                cardXOffset = (width - artworkConfig.cardWidth) / 2;
+                                cardYOffset = (height - artworkConfig.cardHeight) / 2;
+                              }
 
-        // Calculate the position to center the card (600x900) within the canvas
-        cardXOffset = (width - artworkConfig.cardWidth) / 2;
-        cardYOffset = (height - artworkConfig.cardHeight) / 2;
-
-        // Draw a rounded shadow with light from the top-left corner
-        for (let i = 0; i < artworkConfig.shadowSize; i++) {
-          let alpha = map(i, 0, artworkConfig.shadowSize, 0, 20); // Adjust alpha for a smooth transition
-          fill(0, alpha);
-          rect(cardXOffset + i, cardYOffset + i, artworkConfig.cardWidth, artworkConfig.cardHeight, artworkConfig.cornerRadius);
-        }
-
-        // Draw a rounded rectangle as the card background
-        fill(255); // Invert
-        rect(cardXOffset, cardYOffset, artworkConfig.cardWidth, artworkConfig.cardHeight, artworkConfig.cornerRadius);
-
-        // Choose a random image
-        let randomIndex = floor(random(images.length));
-        let img = images[randomIndex];
-
-        img.resize(artworkConfig.cardWidth - 2 * artworkConfig.padding, artworkConfig.cardHeight - 2 * artworkConfig.padding);
-
-        // Apply adjustable blur and posterize effects
-        img.filter(BLUR, artworkConfig.blurAmount);
-        img.filter(POSTERIZE, artworkConfig.posterizeLevel);
-
-        drawCard(img, width / 2, height / 2, artworkConfig.cardWidth, artworkConfig.cardHeight);
-
-        overlayWhiteTriangle(cardXOffset, cardYOffset, artworkConfig.cardWidth, artworkConfig.cardHeight);
-        placeArtImageLogo(cardXOffset, cardYOffset, artworkConfig.cardWidth, artworkConfig.cardHeight);
-        placeInvertedTriangle(cardXOffset, cardYOffset, artworkConfig.cardWidth, artworkConfig.cardHeight);
-      }
-
-      function drawCard(img, x, y, width, height) {
-        // Draw a card with a shadow
-        push();
-        translate(x - width / 2, y - height / 2); // Center the card on the canvas
-
-        // Draw image inside the card with padding
-        image(img, artworkConfig.padding, artworkConfig.padding, width - 2 * artworkConfig.padding, height - 2 * artworkConfig.padding);
-
-        pop();
-      }
-
-      function overlayWhiteTriangle(x, y, width, height) {
-        // Overlay a white triangle on the top corner of the card
-        push();
-        translate(x, y); // Top-left corner of the card
-
-        fill(255); // White
-        noStroke();
-        triangle(10, 10, 250, 10, 10, 250); // Adjust triangle coordinates as needed
-
-        pop();
-      }
-
-      function placeArtImageLogo(x, y, width, height) {
-        // Place "artImage" logo on top of the card inside a white circle
-        push();
-        translate(x, y); // Top-left corner of the card
-
-        // Draw a white circle slightly larger than the logo
-        fill(255);
-        noStroke();
-        ellipse(110, 110, 210, 210); // Adjust circle position and size as needed
-
-        // Use the globally loaded logo variable
-        logo.resize(200, 200);
-        image(logo, 10, 10); // Adjust logo position as needed
-
-        pop();
-      }
-
-      function placeInvertedTriangle(x, y, width, height) {
-        // Place an inverted white triangle in the bottom right of the card
-        push();
-        translate(x + width, y + height); // Bottom right corner of the card
-
-        fill(255); // White
-        noStroke();
-        triangle(-10, -10, -250, 0, 0, -250);
-
-        if (fontReady) {
-          fill(0);
-          textSize(70);
-
-          let textTop = tokenId;
-
-          textFont(font);
-
-          let textTopWidth = textWidth(textTop);
-
-          textAlign(BOTTOM);
-
-          let xOffset = -10;
-
-          text(textTop, xOffset - textTopWidth, -30); // Adjust text position as needed
-        }
-
-        pop();
-      }
+                              function windowResized() {
+                                resizeCanvas(windowWidth, windowHeight);
+                                updateCardPosition();
+                              }
     </script>
   </body>
 </html>
